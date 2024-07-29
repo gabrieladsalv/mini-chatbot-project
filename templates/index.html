@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <!-- Importando o cliente do Socket.IO -->
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+        #messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #messages li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        #messages li:nth-child(even) {
+            background: #f9f9f9;
+        }
+        #input-container {
+            display: flex;
+            margin-top: 20px;
+        }
+        #input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #input-container button {
+            padding: 10px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        #input-container button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <h1>Chatbot</h1>
+        <ul id="messages"></ul>
+        <div id="input-container">
+            <input id="message-input" autocomplete="off" placeholder="Type a message...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const messagesList = document.getElementById('messages');
+
+        function addMessage(message, isUserMessage = true) {
+            const li = document.createElement('li');
+            li.textContent = (isUserMessage ? 'You: ' : 'Bot: ') + message;
+            messagesList.appendChild(li);
+            messagesList.scrollTop = messagesList.scrollHeight; 
+        }
+
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessage(message);
+                socket.emit('message', message);
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        socket.on('response', function(response) {
+            var messages = document.getElementById('messages');
+            var newMessage = document.createElement('li');
+            newMessage.textContent = 'Bot: ' + response;
+            messages.appendChild(newMessage);
+        });
+
+        socket.on('response', (response) => {
+            addMessage(response, false);
+        });
+    </script>
+</body>
+</html>
